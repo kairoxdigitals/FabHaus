@@ -209,7 +209,7 @@ export const SITE_CONTENT = {
     builtLabel: "What we deliver",
     renderImage: {
       placeholderLabel: "[Render Image: 3D Visualization approved by client]",
-      src: "/src/assets/images/project_timber_residence_1793296208604.jpg",
+      src: "images/project_timber_residence_1793296208604.jpg",
       alt: "3D architectural render approved at design stage",
     },
     builtImage: {
@@ -270,7 +270,7 @@ export const SITE_CONTENT = {
           },
           {
             label: "[Architecture Image 2: LGSF project, architectural plan]",
-            src: "/src/assets/images/hero_architecture_pavilion_1793296206739.jpg",
+            src: "/images/hero_architecture_pavilion_1793296206739.jpg",
             alt: "Architectural plan and steel structural envelope",
           },
         ],
