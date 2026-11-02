@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 
 interface ImageOrPlaceholderProps {
   src?: string;
@@ -23,10 +24,24 @@ export const ImageOrPlaceholder: React.FC<ImageOrPlaceholderProps> = ({
 }) => {
   const isDark = theme === 'dark';
 
-  // If no src is provided or src is an unconfirmed bracket string
-  const hasValidImage = Boolean(src && !src.startsWith('[') && !src.endsWith(']'));
+  const imageSrc = src?.trim();
 
-  if (!hasValidImage) {
+  const isValidSource = Boolean(
+    imageSrc &&
+    !imageSrc.startsWith('[') &&
+    !imageSrc.endsWith(']')
+  );
+
+  const [imageError, setImageError] = useState(false);
+
+  // Reset error when the image source changes
+  useEffect(() => {
+    setImageError(false);
+  }, [imageSrc]);
+
+  const showImage = isValidSource && !imageError;
+
+  if (!showImage) {
     return (
       <div
         className={`relative flex flex-col items-center justify-center p-6 text-center overflow-hidden border ${
@@ -35,13 +50,13 @@ export const ImageOrPlaceholder: React.FC<ImageOrPlaceholderProps> = ({
             : 'bg-[#E3D5BD]/40 border-[#0E0E0E]/10 text-[#0E0E0E]'
         } ${aspectRatio} ${className}`}
         role="img"
-        aria-label={alt || placeholderLabel || 'Image slot placeholder'}
+        aria-label={alt || placeholderLabel || 'Image placeholder'}
       >
-        {/* Subtle architectural framing watermark */}
         <div
           className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
-            backgroundImage: `radial-gradient(currentColor 1px, transparent 1px)`,
+            backgroundImage:
+              'radial-gradient(currentColor 1px, transparent 1px)',
             backgroundSize: '16px 16px',
           }}
           aria-hidden="true"
@@ -57,8 +72,11 @@ export const ImageOrPlaceholder: React.FC<ImageOrPlaceholderProps> = ({
           >
             Client Asset Slot
           </span>
+
           <p className="text-xs md:text-sm font-medium tracking-wide opacity-90 break-words">
-            {placeholderLabel || '[Catalogue Photography Placeholder]'}
+            {imageError
+              ? 'Image unavailable'
+              : placeholderLabel || '[Catalogue Photography Placeholder]'}
           </p>
         </div>
       </div>
@@ -68,12 +86,14 @@ export const ImageOrPlaceholder: React.FC<ImageOrPlaceholderProps> = ({
   return (
     <div className={`relative overflow-hidden ${aspectRatio} ${className}`}>
       <img
-        src={src}
+        src={imageSrc}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding={priority ? 'sync' : 'async'}
+        onError={() => setImageError(true)}
         className="w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03]"
       />
+
       {showMockBadge && placeholderLabel && (
         <div className="absolute bottom-2.5 left-2.5 z-10 pointer-events-none">
           <span className="text-[10px] font-mono tracking-widest uppercase bg-[#0E0E0E]/85 text-[#B8975A] border border-[#B8975A]/25 px-2 py-0.5 rounded-none backdrop-blur-xs">
