@@ -1,0 +1,479 @@
+# Fab Haus — Architecture & Fabrication Landing Page
+
+Build specification for a static, single-page website for **Fab Haus**, an architecture firm that also fabricates and manufactures. Page layout and interaction style follow the structure of https://www.rakinteriors.com/ (layout only). Colors, fonts, content rules and everything else in this spec are unchanged.
+
+---
+
+## 0. Changelog & Revision History (All Changes Made)
+
+### Latest Revision: Layout and Effects Reference (RAK Interiors)
+1. **Layout and section order now follow the RAK Interiors home page (layout only):** utility bar, sticky header with a dropdown, hero slider, About, before/after compare, two segment cards, video, testimonials carousel, multi-column footer, and floating action buttons. See section 4.
+2. **Motion rebuilt to match:** cinematic parallax, pinned sections, masked line reveals, clip-path wipes, count-ups, Lenis smooth scroll and GSAP/ScrollTrigger are removed. They are replaced by a crossfading hero slider with slow zoom, fade-up reveals, a drag compare slider and a testimonials carousel. See section 5. Stack changes accordingly (section 1).
+3. **Unchanged:** color tokens, typefaces, content rule, external-link rules, device compatibility, deployment/domain and Phase 2.
+4. **Deliberately not copied from RAK:** the free-quote slide-out form (forms stay out of Phase 1), blog/news, 360 view, customer login, the multi-page structure, and all of RAK's copy, numbers, claims, imagery, logo and testimonials.
+5. **Fallback rules added** for missing images and content (section 4), because the client has little material.
+6. **Acceptance checklist reset to unticked.** The earlier ticks described the previous layout and were not backed by measurements.
+
+### Previous Revision: Selected Work Categories, External Links & Accessibility Refinement (panel layout and motion superseded by the latest revision; link, stats and Phase 2 rules still apply)
+1. **Selected Work Restructured to Two Category Panels**:
+   - Replaced the pinned four-project gallery with two stacked full-bleed panels: **Architecture** and **Interiors** (`100svh` on desktop, `80svh` on mobile).
+   - Each panel incorporates high-impact full-bleed photography, clip-path entrance wipes (`inset(0 0 100% 0) → inset(0 0 0 0)`), scrubbed parallax drift (`yPercent: -10 → 10`), masked line-reveal headings, and single-line descriptive copy.
+   - Replaced multi-button actions with single external outbound portfolio links: `View architecture work ↗` and `View interior work ↗`.
+2. **External Link Accessibility Rules (`src/components/ui/ExternalLink.tsx`)**:
+   - Enforced standard `target="_blank"` and `rel="noopener noreferrer"` across portfolio and footer links.
+   - Added visible `↗` arrow indicators that nudge on hover (`translate-x-1 -translate-y-1`) alongside visually hidden screen-reader text: `(opens in a new tab)`.
+   - Guaranteed plain anchor tag implementation (prohibited `window.open` to bypass popup blocker issues).
+   - Added graceful placeholder suppression: if a portfolio URL is an unconfirmed bracketed placeholder (`[Architecture Portfolio URL]`), the link is hidden rather than rendered broken.
+3. **Manifesto Stats Hidden Pending Verification**:
+   - Configured `hasVerifiedStats: false` in `src/data/content.ts` and updated `src/components/Manifesto.tsx` to hide unverified bracketed stats (`[X] Projects · [X] Years · [X] Cities`) until credible figures are supplied by the client.
+4. **Navbar Contrast & Deduplication Fixes**:
+   - Removed the duplicate "Contact" text link from the navigation array in `src/data/content.ts` so `Get in touch` serves as the sole, prominent primary action button.
+   - Upgraded navbar typography to high-contrast white with subtle drop shadows and an ambient top gradient scrim (`from-[#0A0A0A]/95 via-[#0A0A0A]/75 to-transparent`) to ensure razor-sharp legibility over bright architectural hero imagery.
+5. **Phase 2 Conversational Lead Qualifier Architecture Added**:
+   - Detailed Phase 2 post-launch conversational lead-qualifier specifications (Section 11) while keeping Phase 1 lean, static, and performant.
+6. **Mock Build Status, Device Compatibility & GoDaddy Domain Plan**:
+   - Phase 1 is now explicitly a mock/preview build for client approval. SEO is deferred to a later phase (Section 13).
+   - Added an all-devices compatibility requirement with breakpoints, orientation, input and browser rules (Section 6).
+   - Pinning threshold raised from 768px to 1024px so tablets in portrait get the lightweight layout.
+   - Added deployment and GoDaddy domain connection steps, plus `noindex` safeguards for the mock (Section 12).
+
+### Initial Revision: Transition from Multi-Tool App to Cinematic Landing Page
+- **Content Rule Enforcement**: Removed every invented fact (named projects, locations, dimensions, equipment, tolerances, tonnage, and carbon offset figures). All unverified information was converted into bracketed placeholders managed centrally in `src/data/content.ts`.
+- **Scope Simplification**: Stripped out calculators, materials lab, filterable project showcase, project detail modals, consultation forms, and the Stitch sync modal to deliver a static marketing landing page.
+- **Removed Internal/Platform IDs**: Eliminated Stitch project IDs, Google Cloud IDs, endpoints, and live dev URLs from public specifications.
+- **Motion & Smooth Scroll Architecture (superseded by the latest revision)**: Integrated Lenis smooth scroll (`lerp: 0.1`) synchronized with GSAP ScrollTrigger, complete with parallax image drift, clip-path wipes, masked line reveals, and reduced-motion fallbacks.
+
+---
+
+## 1. Goal and Scope
+
+**Goal:** make a first-time visitor (homeowner, developer, or commercial client) understand in 10 seconds that Fab Haus designs *and* builds, see proof of real work, and contact the studio without friction.
+
+**Status:** Phase 1 is a **mock/preview build** for client approval. It runs on a temporary preview URL first and is connected to the client's GoDaddy domain only after sign-off (section 12). SEO is deferred (section 13).
+
+**In scope (Phase 1):**
+- One scrolling page that works on **all devices** (see "Device and browser compatibility" in section 6). Primary design targets are 1440px desktop and 390px mobile. Tablet, large-desktop and landscape layouts are also designed and tested.
+- `mailto:` and WhatsApp contact.
+- Outbound portfolio links (Architecture, Interiors) that open in a new tab.
+
+**Out of scope (Phase 1):** login, dashboards, calculators, modals, forms (including a free-quote form), blog/news, CMS, backend, multi-page structure, SEO optimization (deferred, section 13).
+
+**Phase 2 (separate, after launch):** conversational lead-qualifier. See section 11. It must not be added to Phase 1.
+
+**Stack:** React 19, TypeScript, Vite, Tailwind CSS v4, Embla Carousel (hero slider and testimonials, with its fade plugin), IntersectionObserver for reveals. No GSAP, ScrollTrigger or Lenis.
+
+---
+
+## 2. Content Rule (read first)
+
+Nothing about the firm may be stated as fact unless the client confirmed it.
+
+- All copy that depends on the client lives in `src/data/content.ts`, with bracketed placeholders such as `[Project Name]`, `[Typology · City · Year]`, `[X]`, `[Principal Name]`.
+- Stats, client logos, testimonials, certifications and capability claims stay as placeholders, or are hidden, until verified.
+- Stats (`[X] Projects · [X] Years · [X] Cities`) in the About section are **hidden** until the client has numbers that look credible. A small number shown as a stat hurts more than no stat.
+- The layout reference site's copy, numbers, claims (homeowner counts, handover times, warranties), imagery, logo and testimonials are never reused. Slide headlines come from this spec or from the client.
+- Sustainability or carbon claims are not allowed without a documented source from the client.
+- The "Design + Make" columns stay as `[What we fabricate 1–3]` until the client confirms what they manufacture.
+- Portfolio destination URLs live in `content.ts` as `[Architecture Portfolio URL]` and `[Interiors Portfolio URL]`. Do not link anywhere unconfirmed. If a URL is still a placeholder at launch, the link is hidden, not left broken.
+
+---
+
+## 3. Design System
+
+### Typography (two families)
+- **Display:** `Plus Jakarta Sans`, tight tracking, very large on desktop (clamp 56px to 160px for section headlines).
+- **Body and UI:** `DM Sans`, 16–18px, line-height 1.6.
+- **Labels:** small uppercase, wide letter-spacing (`text-xs uppercase tracking-[0.2em]`), same two families.
+- Project metadata is unboxed text separated by `·` or `/`. No pill badges.
+
+### Color tokens
+The client has no confirmed brand palette yet. Use these as a **proposal**, held in CSS variables so they can be swapped in one place:
+
+| Token | Proposed value | Use |
+| :-- | :-- | :-- |
+| `--color-bg` | `#0A0A0A` | Page canvas |
+| `--color-surface` | `#141414` | Alternate sections |
+| `--color-text` | `#F2F0EB` | Primary text |
+| `--color-muted` | `#A3A3A3` | Secondary text |
+| `--color-accent` | `#FBBF24` | Primary buttons, process numerals, active states only |
+| `--color-light` | `#F2F0EB` | Light-section background (About) |
+
+Rules: one accent only, no gradients except a dark overlay for text legibility over photos, hairline borders at 8–12% opacity.
+
+### Layout
+- 12-column grid, 120px+ vertical rhythm between sections on desktop (80px on mobile).
+- The hero slider is full-bleed. All other sections use a centered container (max-width 1280px, 20px padding on mobile) on full-width background bands alternating `--color-bg`, `--color-surface` and `--color-light`.
+- Cards (segments, process steps, testimonials) are allowed: `--color-surface` background, hairline border, no shadows.
+- Hero height is `min(100svh, 900px)`. Use `svh`, never `vh`, so mobile browser bars do not clip content.
+
+---
+
+## 4. Page Structure (top to bottom)
+
+Layout reference: the home page of https://www.rakinteriors.com/. Only the structure and section order are followed. Fab Haus keeps its own colors, fonts, copy rules and single-page format.
+
+1. **Utility bar** (thin strip above the header)
+   - Left: `[Email]` and `[Phone]`. Background `--color-surface`.
+   - Scrolls away with the page. Hidden below 768px (the same details appear in Contact and the footer).
+2. **Header** (sticky)
+   - Left: wordmark `FAB HAUS`. Right: `Home`, `About`, `Work` (dropdown: `Architecture ↗`, `Interiors ↗`, both external, new tab), `Design + Make`, `Process`, and a primary `Get in touch` button.
+   - Always visible. Transparent over the hero with a subtle dark backing, solid `--color-bg` with a hairline border after 80px of scroll.
+   - Active section link is highlighted.
+   - Mobile: menu button opens a drawer. The `Work` dropdown becomes an accordion inside it.
+3. **Hero slider** (full-bleed, `min(100svh, 900px)`)
+   - Three slides, each with a full-bleed image under a dark overlay (at least 40%), a very large headline, a small uppercase label (`[Slide label]`), one tagline line (`[Slide tagline]`) and one button:
+     - Slide 1: "Designed. Built. Delivered." → `View our work` (anchors to Work).
+     - Slide 2: "From drawing to built, under one roof." → `Explore Design + Make`.
+     - Slide 3: "Let's build something real." → `Get in touch`.
+   - Controls: previous/next arrows, dots, swipe on touch, and a visible pause/play button.
+   - Stat-led slides are allowed only once the client supplies verified figures (section 2).
+4. **About** (light section, two columns)
+   - Left: heading, `[Firm statement]`, short story `[About paragraph]`, optional founder quote `"[Principal quote]"` — `[Principal Name]`.
+   - Right: image `[About Image]`.
+   - Optional stats row (`[X] Projects · [X] Years · [X] Cities`), hidden until real figures are supplied.
+5. **Drawing to Built** (before/after compare)
+   - A drag slider comparing a render or drawing with a photo of the same project (`[Render Image]`, `[Built Image]`), with a caption `[Project Name]`.
+   - Hidden if the client has no matching pair.
+6. **What We Do** (two segment cards)
+   - Two cards side by side (stacked on mobile): `Architecture` and `Interiors`. Each has an image, the title, `[Category description]` and a link `View architecture work ↗` / `View interior work ↗`.
+   - Links open the full portfolio in a new tab (see section 6).
+7. **Design + Make** (the differentiator)
+   - Two images side by side: architecture (drawing or render) and fabrication (workshop or material close-up).
+   - Heading: "From drawing to built, under one roof."
+   - Three short columns: `[What we fabricate 1]`, `[What we fabricate 2]`, `[What we fabricate 3]`.
+8. **Process** (dark band)
+   - Four steps in a row (stacked on mobile): `01 Discover`, `02 Design`, `03 Fabricate`, `04 Install`, each with a one-line description. Numerals in the accent color. Static, no pinning.
+9. **Video** (optional)
+   - `[Video URL]` shown as a poster with a play button. The embed loads only after the visitor clicks. Hidden if no video.
+10. **Testimonials** (carousel, optional)
+    - Cards with quote text, name and location (`[Testimonial]`, `[Client Name]`, `[Location]`), optional photo. Client logos (`[Client logos]`) may sit beneath. Hidden entirely if the client has none yet. Do not fake it.
+11. **Contact** (dark, full-width)
+    - Headline "Let's build something real."
+    - `[Email]`, `[Phone]`, `[Address]`, plus a `mailto:` button and a WhatsApp button (`https://wa.me/<digits only, country code, no + or spaces>`). No form in Phase 1.
+12. **Footer** (multi-column)
+    - Columns: Quick links (page sections), Work (`Architecture ↗`, `Interiors ↗`), Contact (`[Address]`, `[Phone]`, `[Email]`).
+    - `[Instagram]`, `[LinkedIn]` and other networks the client actually has. `[Download Brochure]` (PDF, new tab) only if supplied. Copyright line.
+13. **Floating action buttons** (fixed, right edge)
+    - Icon stack: WhatsApp, Call, and Instagram (only if the client has it), plus a fixed `Get in touch` tab that scrolls to Contact. It is a link, not a form.
+    - 44px minimum tap targets, safe-area insets respected, must not cover content or form a trap on small screens.
+
+**Fallbacks when assets are missing** (the client has little material)
+- Hero: fewer than two supplied images means a single static slide with no controls or autoplay.
+- About image missing: text-only, centered statement.
+- Drawing to Built: no matching pair means the section is hidden.
+- Segment card image missing: text-only card on `--color-surface`.
+- Design + Make images missing: text columns only, no image pair.
+- Video, testimonials, brochure and social links: hidden when absent.
+- Mock only: a missing image renders as a neutral `--color-surface` block labelled with its placeholder name (for example `[Hero Image]`), so the client can see what is needed. At go-live the fallbacks above apply.
+
+---
+
+## 5. Motion System
+
+Motion follows the simple, component-driven style of the reference site: a slider, a compare slider, a carousel and gentle reveals. There is no scroll-linked motion.
+
+### Principles
+- Calm and simple. No bounce, no spring overshoot, no flashy effects.
+- Animate only `transform` and `opacity`. Never animate width, height, top or left.
+- Motion never hides content: everything is readable without it.
+- Not used in this layout: parallax, pinned sections, masked line reveals, clip-path wipes, count-ups, smooth-scroll libraries.
+
+### Tokens
+
+| Token | Value |
+| :-- | :-- |
+| Ease (reveals, UI) | `cubic-bezier(0.16, 1, 0.3, 1)` |
+| Slide crossfade | 1.0s |
+| Slide zoom (Ken Burns) | `scale 1 → 1.06` over the slide's visible time |
+| Autoplay interval (hero) | 6s per slide |
+| Duration, text reveal | 0.6s |
+| Duration, image reveal | 0.8s |
+| Duration, small UI | 0.3s |
+| Stagger, cards or columns | 0.1s |
+| Reveal trigger | element top at 85% of the viewport, play once (IntersectionObserver) |
+
+### Behaviour by component
+
+**Hero slider**
+- Crossfade between slides (`opacity`), with a slow zoom on the active slide's image.
+- On each slide change, the label, headline, tagline and button fade and rise in sequence (`opacity 0 → 1`, `y 24 → 0`, 0.1s apart).
+- Autoplay every 6s. Autoplay stops on hover, on keyboard focus inside the slider, when the browser tab is hidden, when the pause button is pressed, and when reduced motion is on.
+- Swipe on touch, arrow keys when focused, dots and arrows both clickable.
+- Only the first slide's image is preloaded. Autoplay starts after the first slide has loaded.
+
+**Header**
+- Sticky. Transparent to solid background change after 80px of scroll (`opacity` of the background layer, 0.3s). The utility bar scrolls away.
+- Dropdown opens on hover or focus (desktop) and on tap (touch) with a 0.2s fade and 8px rise. It is keyboard operable (`Enter`/`Space` opens, `Esc` closes).
+
+**Section reveals**
+- Headings, text, buttons and cards fade and rise once on entry. Cards and columns stagger by 0.1s.
+- Images fade in with a slight settle (`opacity 0 → 1`, `scale 1.04 → 1`, 0.8s).
+- Initial hidden states are applied by JavaScript after mount (`html.js` class), never by plain CSS, so content is not invisible if JS fails to load.
+
+**Drawing to Built (compare slider)**
+- Starts at 50%. The visitor drags the handle (pointer events), or uses the left/right arrow keys when it is focused.
+- The top image is revealed by a clip applied to it. The handle moves with `transform`.
+- Exposed as `role="slider"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow` and an accessible name.
+
+**Segment, Design + Make and other cards**
+- No scroll-linked motion. Hover (fine pointer only): image zooms `1 → 1.03` over 0.5s, link underline draws in, `↗` arrow nudges 4px.
+
+**Testimonials carousel**
+- Slides horizontally (0.5s). Arrows and swipe. Autoplay is off by default.
+
+**Floating action buttons**
+- Fade in 0.3s after load. No other motion.
+
+### Anchors and scrolling
+- Native browser scrolling everywhere. In-page anchors use CSS `scroll-behavior: smooth` (switched off under reduced motion) and `scroll-margin-top` equal to the header height.
+
+### Hover and micro-interactions (devices with hover and a fine pointer only)
+- Buttons: fill slides in from the left (0.3s), arrow nudges 4px.
+- Nav links: underline draws from the left.
+- All hover-revealed information is **always visible on touch devices**.
+
+---
+
+## 6. UX and Accessibility Requirements
+
+**Navigation and orientation**
+- Skip-to-content link as the first focusable element.
+- Active section highlighting in the nav.
+- The header is sticky and always visible. It does not hide on scroll.
+- Every key page action is reachable in at most two clicks (`Get in touch` is in the header and as a fixed tab, and anchors to Contact).
+- The nav keeps `Get in touch` visible so a visitor returning from a portfolio tab still has a clear next step.
+
+**External links (new tab)**
+- Every link that opens a new tab uses `target="_blank"` and `rel="noopener noreferrer"`.
+- Show a visible `↗` icon and add visually hidden text: "(opens in a new tab)".
+- Use plain anchor tags, never `window.open()` (popup blockers can break it).
+- Footer social links follow the same rules.
+- The original page stays open, so no state is lost.
+
+**Reduced motion** (`prefers-reduced-motion: reduce`)
+- Hero autoplay is off, the slow zoom is off, and the crossfade becomes an instant swap.
+- Smooth anchor scrolling is off.
+- Reveals become a simple 0.2s fade. Content must never depend on animation to be visible.
+
+**Accessibility**
+- Text over photos must meet WCAG AA contrast, so use a dark overlay of at least 40% on image sections.
+- Visible focus states on all interactive elements.
+- Descriptive alt text for every image, and `aria-hidden` for purely decorative ones.
+- Drawer menu: focus trap, `Esc` closes it, and focus returns to the menu button.
+- Hero slider: marked up as a carousel (`aria-roledescription="carousel"`, each slide labelled "n of 3"). A visible pause/play button is required because it moves automatically. Arrows have accessible names, dots are buttons with `aria-current` on the active one. Only the active slide is exposed to assistive technology.
+- Compare slider: keyboard operable and announced as a slider (see section 5).
+- Dropdown menu: keyboard operable, closes with `Esc`, focus never trapped.
+- Video: click-to-load facade is a real button with an accessible name; the embed has a title.
+
+**Device and browser compatibility**
+The design must work on every common device. No layout may depend on one specific screen.
+- **Breakpoints (min-width):** 360 (small phones), 390 (primary mobile), 768 (tablet portrait), 1024 (tablet landscape / small laptop), 1440 (primary desktop), 1920+ (large desktop). Content max-width and image scaling must hold on large screens, with no stretched or pixelated imagery. Use fluid type (`clamp`) and relative units, not fixed-pixel layouts.
+- **Orientation:** portrait and landscape both supported. On short landscape viewports (phones around 360–430px tall), `100svh` sections must not clip content: reduce headline size and padding with a `max-height` media query.
+- **Input:** touch, mouse and keyboard all work. Hover is never required to reach content. Enable hover effects by capability, `(hover: hover) and (pointer: fine)`, not by screen width, so tablets with keyboards or large touch screens behave correctly.
+- **Scrolling:** native browser scrolling on every device. No smooth-scroll library.
+- **Browsers (last 2 major versions):** Chrome, Safari (iOS and macOS), Firefox, Edge, Samsung Internet. Safari checks: `100svh`, `clip-path`, `backdrop-filter` (include `-webkit-` prefix and a solid-color fallback), safe-area insets.
+- **Zoom and text size:** layout survives 200% browser zoom and increased system text size with no horizontal scroll or overlapping text.
+- **Test matrix before client sign-off:** small and large iPhone, mid-range Android phone, iPad (portrait and landscape), 13" laptop, 1920px desktop. Include a real-device check on iOS Safari and Android Chrome, because emulators do not show real scroll performance.
+
+**Mobile**
+- The layout has no pinning or parallax. Below 768px the utility bar is hidden and the header dropdown becomes a drawer accordion. Floating buttons sit at the bottom-right, clear of safe-area insets and the page content.
+- Tap targets are at least 44px. Container padding is 20px. Respect safe-area insets.
+- Use `100svh`, never `100vh`.
+
+**Performance budget**
+- LCP under 2.5s, CLS under 0.1, and no jank while scrolling at 60fps on a mid-range phone.
+- The first hero slide image is preloaded and served as AVIF or WebP with responsive `srcset`. Other slides and all other images are lazy-loaded.
+- Every image has explicit width and height or an aspect-ratio box to avoid layout shift.
+- The video section is a poster until clicked. The embed loads only after the visitor clicks play.
+- Fonts: `font-display: swap`, subset to Latin, preloaded.
+- Carousel instances are destroyed on unmount and autoplay timers are cleared.
+
+---
+
+## 7. File and Component Structure
+
+```
+/src
+├── App.tsx                    # Page assembly
+├── main.tsx
+├── index.css                  # Tailwind v4, color tokens, global styles
+├── data/
+│   └── content.ts             # ALL client copy and placeholders
+├── hooks/
+│   ├── useReveal.ts           # IntersectionObserver fade/rise reveals
+│   ├── useActiveSection.ts    # Nav highlight
+│   └── useReducedMotion.ts
+├── components/
+│   ├── UtilityBar.tsx         # Email / phone strip, hidden below 768px
+│   ├── Header.tsx             # Sticky header, Work dropdown, drawer
+│   ├── HeroSlider.tsx         # Embla + fade plugin, autoplay, pause button
+│   ├── About.tsx              # Text + image; stats hidden until real figures
+│   ├── DrawingToBuilt.tsx     # Compare slider, hidden without a pair
+│   ├── WhatWeDo.tsx           # Two segment cards (Architecture / Interiors), external links
+│   ├── DesignAndMake.tsx
+│   ├── Process.tsx            # Four static steps
+│   ├── VideoSection.tsx       # Click-to-load facade, hidden without a URL
+│   ├── Testimonials.tsx       # Carousel, hidden if no content supplied
+│   ├── Contact.tsx
+│   ├── Footer.tsx
+│   ├── FloatingActions.tsx    # WhatsApp, Call, Instagram, Get in touch tab
+│   └── ui/
+│       ├── Button.tsx
+│       ├── Reveal.tsx         # Wrapper applying the reveal
+│       ├── CompareSlider.tsx
+│       ├── Carousel.tsx       # Shared Embla wrapper
+│       └── ExternalLink.tsx   # target, rel, ↗ icon, hidden "opens in new tab" text
+└── assets/images/             # Client photography (replace placeholders)
+```
+
+### `content.ts` portfolio shape
+
+```ts
+portfolio: {
+  architecture: {
+    title: "Architecture",
+    line: "[Category description]",
+    image: "[Architecture Image]",
+    url: "[Architecture Portfolio URL]",
+  },
+  interiors: {
+    title: "Interiors",
+    line: "[Category description]",
+    image: "[Interiors Image]",
+    url: "[Interiors Portfolio URL]",
+  },
+}
+```
+
+If a `url` is still a placeholder, the component hides that link rather than rendering a broken one. The same rule applies to every optional block (video, testimonials, brochure, social links, compare pair).
+
+---
+
+## 8. Build Scripts
+
+```bash
+npm install
+npm run dev          # local dev server
+npx tsc --noEmit     # type check
+npm run build        # production bundle
+```
+
+---
+
+## 9. Acceptance Checklist
+
+Tick an item only after it has been checked, with the tool or device noted next to it.
+
+- [ ] No unconfirmed fact appears anywhere on the page, and nothing from the reference site's copy, numbers or imagery is reused.
+- [ ] The page is static: no modals, forms, calculators or backend calls (Phase 1).
+- [ ] Section order and layout match section 4, including all fallbacks when assets are missing.
+- [ ] Hero slider: crossfade, autoplay, pause/play button, arrows, dots and swipe all work; autoplay stops on hover, focus, hidden tab and reduced motion.
+- [ ] Drawing to Built slider works with pointer and keyboard.
+- [ ] Reveals play once and never leave content invisible if scripts fail.
+- [ ] Reduced-motion mode works and the content stays fully usable.
+- [ ] Mobile (390px): drawer menu and accordion work, hover content is visible, floating buttons do not cover content.
+- [ ] Contrast, focus states, alt text and the skip link pass an accessibility check.
+- [ ] LCP < 2.5s, CLS < 0.1 on a mid-range phone (note the tool and score).
+- [ ] WhatsApp link uses digits only, and the `mailto:` link works.
+- [ ] Both portfolio links open in a new tab with `rel="noopener noreferrer"` and a visible `↗` plus hidden "opens in a new tab" text.
+- [ ] No link points to an unconfirmed or placeholder URL at launch.
+- [ ] Stats are hidden unless real figures were supplied.
+- [ ] Layout verified on the device matrix in section 6, with no horizontal scroll at any width from 360px up.
+- [ ] No content depends on hover; touch, mouse and keyboard all work.
+- [ ] Mock site is served with `noindex` and is not discoverable until the client approves going public.
+- [ ] At go-live: domain connected, HTTPS valid, www/apex redirect working, email still delivering, `noindex` removed (section 12).
+
+---
+
+## 10. Needed From the Client Before Launch
+
+1. What Fab Haus manufactures, and the capabilities they are comfortable stating publicly.
+2. Real project photography and ideally workshop photos. Image quality decides the result. Ideal set: 2–3 hero images, one About image, one image each for Architecture and Interiors, two images for Design + Make, and optionally a render and built photo of the same project for the compare slider. Anything missing falls back as described in section 4.
+3. Brand colors, logo and fonts, if any exist. Otherwise approve the proposed palette.
+4. Real stats, a principal quote and name, and client logos or testimonials (or confirm none yet).
+5. Email, phone, address and social links.
+   - Also, if they exist: a video link, a brochure PDF, and real testimonials (name, location, optional photo).
+6. Where the portfolio lives (Behance, Instagram, own site, Drive) and the exact URLs for Architecture and Interiors. One link or two? The destination should look professional, since visitors are sent there from a site designed to build trust. A raw shared-drive folder undermines it.
+7. Domain details: the domain name, which GoDaddy account it sits in (it must be in the client's name), and whether the client has email on that domain (GoDaddy email or Microsoft 365). Email setups depend on DNS records that must not be deleted.
+8. GoDaddy access through **Delegate Access** (preferred) or the client making the DNS changes themselves. Never ask for or store their password.
+
+---
+
+## 11. Phase 2: Conversational Lead Qualifier (after launch)
+
+**Goal:** separate serious enquiries from casual price-checkers, and explain prefab / light-gauge steel framing in plain language so clients do not back off at the jargon.
+
+**Why it is a separate phase:** Phase 1 deliberately removed calculators and forms. This feature needs real client data (pricing ranges) that does not exist yet, and a small backend. It ships only after Phase 1 is live and the client data is supplied.
+
+**Scope**
+- A "Plan your project" button (in Contact and optionally the nav) opening a themed side or full-screen chat panel.
+- Lazy-loaded on click so LCP and CLS budgets in section 6 still hold.
+- No auto-popping chat bubble. It clashes with the slow, confident motion principles and annoys visitors.
+
+**Rules**
+- Questions use outcomes, never jargon. Examples: do you own a plot, when do you want to move in, would you prefer a faster factory-built home or a traditional on-site build.
+- Technical terms are explained in one plain sentence only when relevant.
+- Price output is always a **range labelled "indicative only"**. No exact quotes.
+- Estimates use only client-supplied rate ranges. No invented figures (see Content Rule, section 2).
+- Do not gate the first rough range behind a phone number. Ask for contact details after value is shown, to send a detailed breakdown.
+- Scoring is **explicit rules**, not AI judgment, so it is predictable and tunable:
+  - Land: owns a plot (strong), purchasing (medium), none (weak)
+  - Timeline: under 6 months (hot), 12+ months (nurture)
+  - Budget realism against the size described
+  - Decision-maker: is the user the one deciding
+  - Contact shared: yes or no
+- Output: **Hot / Warm / Cold** plus a 3-line summary the owner can read in 10 seconds.
+- Hot leads are delivered to the client's chosen channel (WhatsApp, email or CRM).
+
+**Technical**
+- A small serverless function (for example on Vercel) holds the API key and sends the lead summary. No key ever lives in the frontend.
+- Chat UI uses the existing design tokens so it feels native to the site.
+
+**Accessibility**
+- Focus trap, `Esc` closes, focus returns to the trigger button, reduced-motion respected, same standard as the drawer menu.
+
+**Needed from the client**
+- Project types they take (villa, farmhouse, commercial, etc.) and rough cost-per-sq-ft ranges for each.
+- What they will not take (minimum size, locations not served).
+- What a good lead looks like to them, and how enquiries are handled today.
+- Who receives leads and on which channel.
+
+**Acceptance**
+- [ ] No exact price shown anywhere.
+- [ ] Every figure traceable to client-supplied data.
+- [ ] Lead summary arrives on the chosen channel within seconds.
+- [ ] Page performance budgets unchanged when the chat is closed.
+- [ ] API key is not present in any frontend bundle.
+
+---
+
+## 12. Deployment and Domain (GoDaddy)
+
+**Mock phase (now)**
+- Deploy to a temporary preview URL on the chosen host (for example a Vercel `*.vercel.app` address) for client review.
+- The mock contains bracketed placeholders and unconfirmed content, so it must not be indexed. Add `<meta name="robots" content="noindex, nofollow">` and, where the host supports it, an `X-Robots-Tag: noindex` header. Use host password protection if the link is shared widely.
+- Do not connect the domain until the client approves content and design.
+
+**Go-live: connect the client's GoDaddy domain**
+1. Confirm the domain is registered in the client's name and that delegate access (or a person who can edit DNS) is available (section 10).
+2. In the host's dashboard, add both the apex (`example.com`) and `www.example.com`. The host shows the exact DNS records required. Use those values, not values copied from guides, because they can differ per project.
+3. In GoDaddy DNS, remove the default parked/forwarding records that conflict with the apex (`@`) and `www`, then add the records the host shows (typically an `A` record for `@` and a `CNAME` for `www`).
+4. **Do not change nameservers** unless DNS is deliberately being moved to the host. **Do not delete MX, TXT (SPF/DKIM/verification) or other email records.** If the client has email on the domain, deleting these breaks their email.
+5. Choose one canonical address (apex or `www`), redirect the other to it, and force HTTP to HTTPS.
+6. Wait for DNS propagation (often minutes to a few hours, up to 48 hours) and confirm the host shows the domain as valid and has issued the SSL certificate.
+7. Remove the `noindex` meta tag and header only when the client approves the site going public.
+8. Post-launch check: both addresses resolve, HTTPS is valid, `mailto:` and WhatsApp links work, and the client's email still delivers.
+
+**Ownership:** decide who owns the hosting account and document the handover (transfer or invite), so the client is not dependent on a personal account.
+
+**Build:** `npm run build` outputs a static `dist/` folder that deploys to any static host.
+
+---
+
+## 13. Deferred: SEO (later phase)
+
+SEO is intentionally **not** part of the mock build. It is recorded here so it is not forgotten:
+- Page title, meta description, Open Graph/social image, canonical URL, sitemap, `robots.txt`, structured data (organization / local business), heading and image alt/filename review.
+- Analytics and click tracking on contact and portfolio links.
+- Rendering: the Phase 1 stack is a client-rendered React single-page app, which gives crawlers little HTML. Decide on prerendering or static generation before this phase, because it changes the build setup.
+- `noindex` is removed only as part of the go-live steps in section 12.

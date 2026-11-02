@@ -1,0 +1,508 @@
+# Fab Haus — Architecture & Fabrication Landing Page
+
+Build specification for a static, single-page website for **Fab Haus**, a Bengaluru design-and-build firm (architecture, interiors, prefab/LGSF construction and its own modular factory, FH_Modulars). Page structure and interaction style follow https://www.rakinteriors.com/ (layout only). **Content comes from the Fab Haus Master Catalogue 2026** (client-supplied). Anything the catalogue does not contain stays a bracketed placeholder.
+
+
+---
+
+## 0. Changelog & Revision History (All Changes Made)
+
+### Latest Revision: Master Catalogue Content Integration
+1. **Content source is now the Fab Haus Master Catalogue 2026.** Copy, stats, project names, process, materials and comparison data are used as written in the catalogue. Everything the catalogue lacks stays bracketed (section 2, section 14).
+2. **Hero rewritten to four slides** using catalogue lines: "Design. Engineer. Build.", "3x to 4x", "45 to 75 working days to handover*", "Let's build something exact". Stat-led slides are allowed because the client supplied the figures, but the catalogue's own footnotes must appear with them (section 2).
+3. **New sections added from the catalogue:** Four Disciplines, Prefab & LGSF (with the LGSF vs Conventional table), FH_Modulars Factory with Materials & Specifications, and Signature Projects. "Drawing to Built" becomes **Render vs Reality**. Process goes from four steps to the catalogue's five.
+4. **Design tokens updated to the catalogue palette** (black, cream, sand, gold, red) and a **two-accent rule** (gold on dark, red on light). Hex values were sampled from the PDF and must be confirmed by the client. Fonts are proposals (the PDF embeds Caladea and Carlito, which are stand-ins for Cambria and Calibri), also to be confirmed.
+5. **Stats:** 9+, 250+ and 25+ are shown. "100% client satisfaction" is hidden until the client confirms it (flag `pendingConfirmation`).
+6. **Unchanged:** RAK-based section skeleton and motion system (section 5), external-link rules, device compatibility, accessibility, deployment/domain, deferred SEO and Phase 2.
+7. **Not verified:** RAK was read as text only, so its exact CSS and JS effects were not inspected. Section 5 keeps the existing motion spec. Treat it as a faithful-in-spirit match, not a measured copy.
+8. **Acceptance checklist** gains items for catalogue disclaimers, table accessibility and the gold-on-cream contrast rule (section 9).
+
+### Previous Revision: Layout and Effects Reference (RAK Interiors)
+1. **Layout and section order now follow the RAK Interiors home page (layout only):** utility bar, sticky header with a dropdown, hero slider, About, before/after compare, two segment cards, video, testimonials carousel, multi-column footer, and floating action buttons. See section 4.
+2. **Motion rebuilt to match:** cinematic parallax, pinned sections, masked line reveals, clip-path wipes, count-ups, Lenis smooth scroll and GSAP/ScrollTrigger are removed. They are replaced by a crossfading hero slider with slow zoom, fade-up reveals, a drag compare slider and a testimonials carousel. See section 5. Stack changes accordingly (section 1).
+3. **Unchanged:** color tokens, typefaces, content rule, external-link rules, device compatibility, deployment/domain and Phase 2.
+4. **Deliberately not copied from RAK:** the free-quote slide-out form (forms stay out of Phase 1), blog/news, 360 view, customer login, the multi-page structure, and all of RAK's copy, numbers, claims, imagery, logo and testimonials.
+5. **Fallback rules added** for missing images and content (section 4), because the client has little material.
+6. **Acceptance checklist reset to unticked.** The earlier ticks described the previous layout and were not backed by measurements.
+
+### Earlier Revision: Selected Work Categories, External Links & Accessibility Refinement (panel layout and motion superseded by the latest revision; link, stats and Phase 2 rules still apply)
+1. **Selected Work Restructured to Two Category Panels**:
+   - Replaced the pinned four-project gallery with two stacked full-bleed panels: **Architecture** and **Interiors** (`100svh` on desktop, `80svh` on mobile).
+   - Each panel incorporates high-impact full-bleed photography, clip-path entrance wipes (`inset(0 0 100% 0) → inset(0 0 0 0)`), scrubbed parallax drift (`yPercent: -10 → 10`), masked line-reveal headings, and single-line descriptive copy.
+   - Replaced multi-button actions with single external outbound portfolio links: `View architecture work ↗` and `View interior work ↗`.
+2. **External Link Accessibility Rules (`src/components/ui/ExternalLink.tsx`)**:
+   - Enforced standard `target="_blank"` and `rel="noopener noreferrer"` across portfolio and footer links.
+   - Added visible `↗` arrow indicators that nudge on hover (`translate-x-1 -translate-y-1`) alongside visually hidden screen-reader text: `(opens in a new tab)`.
+   - Guaranteed plain anchor tag implementation (prohibited `window.open` to bypass popup blocker issues).
+   - Added graceful placeholder suppression: if a portfolio URL is an unconfirmed bracketed placeholder (`[Architecture Portfolio URL]`), the link is hidden rather than rendered broken.
+3. **Manifesto Stats Hidden Pending Verification**:
+   - Configured `hasVerifiedStats: false` in `src/data/content.ts` and updated `src/components/Manifesto.tsx` to hide unverified bracketed stats (`[X] Projects · [X] Years · [X] Cities`) until credible figures are supplied by the client.
+4. **Navbar Contrast & Deduplication Fixes**:
+   - Removed the duplicate "Contact" text link from the navigation array in `src/data/content.ts` so `Get in touch` serves as the sole, prominent primary action button.
+   - Upgraded navbar typography to high-contrast white with subtle drop shadows and an ambient top gradient scrim (`from-[#0A0A0A]/95 via-[#0A0A0A]/75 to-transparent`) to ensure razor-sharp legibility over bright architectural hero imagery.
+5. **Phase 2 Conversational Lead Qualifier Architecture Added**:
+   - Detailed Phase 2 post-launch conversational lead-qualifier specifications (Section 11) while keeping Phase 1 lean, static, and performant.
+6. **Mock Build Status, Device Compatibility & GoDaddy Domain Plan**:
+   - Phase 1 is now explicitly a mock/preview build for client approval. SEO is deferred to a later phase (Section 13).
+   - Added an all-devices compatibility requirement with breakpoints, orientation, input and browser rules (Section 6).
+   - Pinning threshold raised from 768px to 1024px so tablets in portrait get the lightweight layout.
+   - Added deployment and GoDaddy domain connection steps, plus `noindex` safeguards for the mock (Section 12).
+
+### Initial Revision: Transition from Multi-Tool App to Cinematic Landing Page
+- **Content Rule Enforcement**: Removed every invented fact (named projects, locations, dimensions, equipment, tolerances, tonnage, and carbon offset figures). All unverified information was converted into bracketed placeholders managed centrally in `src/data/content.ts`.
+- **Scope Simplification**: Stripped out calculators, materials lab, filterable project showcase, project detail modals, consultation forms, and the Stitch sync modal to deliver a static marketing landing page.
+- **Removed Internal/Platform IDs**: Eliminated Stitch project IDs, Google Cloud IDs, endpoints, and live dev URLs from public specifications.
+- **Motion & Smooth Scroll Architecture (superseded by the latest revision)**: Integrated Lenis smooth scroll (`lerp: 0.1`) synchronized with GSAP ScrollTrigger, complete with parallax image drift, clip-path wipes, masked line reveals, and reduced-motion fallbacks.
+
+---
+
+## 1. Goal and Scope
+
+**Goal:** make a first-time visitor (homeowner, developer, or commercial client) understand in 10 seconds that Fab Haus designs *and* builds, see proof of real work, and contact the studio without friction.
+
+**Status:** Phase 1 is a **mock/preview build** for client approval. It runs on a temporary preview URL first and is connected to the client's GoDaddy domain only after sign-off (section 12). SEO is deferred (section 13).
+
+**In scope (Phase 1):**
+- One scrolling page that works on **all devices** (see "Device and browser compatibility" in section 6). Primary design targets are 1440px desktop and 390px mobile. Tablet, large-desktop and landscape layouts are also designed and tested.
+- `mailto:` and WhatsApp contact.
+- Outbound portfolio links (Architecture, Interiors) that open in a new tab.
+
+**Out of scope (Phase 1):** login, dashboards, calculators, modals, forms (including a free-quote form), blog/news, CMS, backend, multi-page structure, SEO optimization (deferred, section 13).
+
+**Phase 2 (separate, after launch):** conversational lead-qualifier. See section 11. It must not be added to Phase 1.
+
+**Stack:** React 19, TypeScript, Vite, Tailwind CSS v4, Embla Carousel (hero slider and testimonials, with its fade plugin), IntersectionObserver for reveals. No GSAP, ScrollTrigger or Lenis.
+
+---
+
+## 2. Content Rule (read first)
+
+Nothing about the firm may be stated as fact unless it comes from the Master Catalogue 2026 or the client has confirmed it.
+
+- **Source of truth:** the catalogue (`finalised_fabhaus_catalogue.pdf`). Use its wording as written. Do not paraphrase claims, add numbers, or add claims it does not make.
+- All copy lives in `src/data/content.ts`. Anything the catalogue does not supply stays a bracketed placeholder such as `[Phone]`, `[Architecture Portfolio URL]`, `[Testimonial]`.
+- **Disclaimers travel with their claims** (both are in the catalogue):
+  - Wherever "45 to 75 working days" appears: `*Timeline depends on project scope and size and is confirmed in your quotation.`
+  - Wherever "3x to 4x faster", "Zone V seismic", "Zero termite risk", "Non-combustible" or the LGSF vs Conventional table appears: `Comparative positioning. Project-specific performance is confirmed at design stage.`
+- **Held back until the client confirms** (`pendingConfirmation: true` in `content.ts`, hidden in the UI): "100% Client satisfaction on delivery".
+- **Shown as supplied, flagged for client sign-off:** 9+ years, 250+ projects, 25+ specialists; the performance and sustainability claims on the Prefab & LGSF page ("Eco-sustainable", "Zone V seismic", fire and termite claims). No carbon figures or any other sustainability numbers may be added.
+- The layout reference site's copy, numbers, claims (homeowner counts, handover times, warranties), imagery, logo and testimonials are never reused.
+- Project names allowed: Mysore Luxury Residence, Prestige Jindal City Apartment, Nagarbhavi Kitchen, with only the catalogue's one-paragraph descriptions. No areas, dates, budgets or other details unless supplied.
+- No testimonials, client logos, blog posts or video exist in the catalogue. Those sections stay hidden.
+- Portfolio destination URLs stay `[Architecture Portfolio URL]` and `[Interiors Portfolio URL]`. Do not link anywhere unconfirmed. If a URL is still a placeholder at launch, the link is hidden, not left broken.
+- Catalogue-internal artefacts never ship on the site: "Master Catalogue 2026" footers, page numbers, "Image placeholder" captions, and the designer's blue notes.
+
+---
+
+## 3. Design System
+
+### Typography (two families, proposal pending client confirmation)
+The PDF embeds **Caladea** (serif) and **Carlito** (sans), which are metric-compatible stand-ins for Cambria and Calibri. The brand fonts are therefore unconfirmed.
+- **Display:** `Caladea`, tight-to-moderate tracking, uppercase for section headlines.
+- **Body and UI:** `Lato` (Carlito is derived from Lato), 16–18px, line-height 1.6.
+- **Headline pattern (from the catalogue):** two weights in one line, with the first word(s) light and muted and the key word(s) bold, for example `ABOUT` **`FAB HAUS`**.
+- **Labels:** small uppercase, very wide letter-spacing (`text-xs uppercase tracking-[0.25em]`), body family.
+- Fluid headline size with `clamp`, up to about 120px on 1440px desktop. Check that long uppercase titles do not overflow at 360px.
+- Project metadata is unboxed text separated by `·` or `/`. No pill badges, except the four specification chips in Materials & Specifications, which come from the catalogue.
+- The wordmark is flat gold. The catalogue's glowing metallic effect is not reproduced.
+
+### Color tokens
+Sampled from the catalogue PDF. Hex values are approximate and must be confirmed by the client. Held in CSS variables so they can be swapped in one place.
+
+| Token | Value (sampled) | Use |
+| :-- | :-- | :-- |
+| `--color-bg` | `#0E0E0E` | Page canvas, dark sections |
+| `--color-surface` | `#1E1B1B` | Cards and alternate dark sections |
+| `--color-text` | `#F4EBDD` | Primary text on dark |
+| `--color-muted` | `#A3A3A3` | Secondary text (not from the catalogue, kept from the earlier proposal) |
+| `--color-accent` | `#B8975A` (gold) | Labels, numerals and active states **on dark backgrounds only** |
+| `--color-brand` | `#9E1B24` (red) | Primary buttons, stat blocks, labels on light backgrounds, table header |
+| `--color-light` | `#F4EBDD` (cream) | Light-section background |
+| `--color-sand` | `#E3D5BD` | Image-fallback blocks, table label column, light cards |
+
+Rules:
+- Two accents, each with a fixed job: gold on dark, red on light.
+- **Never set gold text on cream or sand.** It measures about 2.3:1 and fails WCAG AA. Gold on `#0E0E0E` is about 7:1 and red on cream is about 6.7:1, both fine.
+- No gradients except a dark overlay for text legibility over photos. Hairline borders at 8–12% opacity.
+
+### Layout
+- 12-column grid, 120px+ vertical rhythm between sections on desktop (80px on mobile).
+- The hero slider is full-bleed. All other sections use a centered container (max-width 1280px, 20px padding on mobile) on full-width background bands alternating `--color-bg`, `--color-surface` and `--color-light`.
+- Cards (segments, process steps, testimonials) are allowed: `--color-surface` background, hairline border, no shadows.
+- Hero height is `min(100svh, 900px)`. Use `svh`, never `vh`, so mobile browser bars do not clip content.
+
+---
+## 4. Page Structure (top to bottom)
+
+Layout reference: the home page of https://www.rakinteriors.com/. Only the structure is followed. Content is the catalogue's.
+
+1. **Utility bar** (thin strip above the header)
+   - Left: `[Email]` and `[Phone]` (not in the catalogue). Background `--color-surface`.
+   - Scrolls away with the page. Hidden below 768px (the same details appear in Contact and the footer).
+2. **Header** (sticky)
+   - Left: wordmark `FAB HAUS`. Right: `Home`, `About`, `Work` (dropdown: `Architecture ↗`, `Interiors ↗`, both external, new tab), `Prefab & LGSF`, `FH_Modulars`, `Process`, and a primary `Get in touch` button.
+   - Always visible. Transparent over the hero with a subtle dark backing, solid `--color-bg` with a hairline border after 80px of scroll.
+   - Active section link is highlighted.
+   - Mobile: menu button opens a drawer. The `Work` dropdown becomes an accordion inside it.
+3. **Hero slider** (full-bleed, `min(100svh, 900px)`)
+   - Four slides, each with a full-bleed image under a dark overlay (at least 40%), a very large headline, a small uppercase label, one tagline line and one button. All text is from the catalogue:
+     - **Slide 1.** Label: "One roof, four disciplines". Headline: "Design. Engineer. Build." Tagline: "Architecture, interiors, prefab construction and our own modular factory, under one roof and one point of accountability." Button: `View our work` (anchors to Signature Projects). Image: `[Hero Image 1]`, intended subject: double-height living space, Mysore Luxury Residence.
+     - **Slide 2.** Label: "Prefab & LGSF". Headline: "3x to 4x". Tagline: "faster delivery than conventional wet-brick and RCC construction". Footnote: "Comparative positioning. Project-specific performance is confirmed at design stage." Button: `Explore Prefab & LGSF`. Image: `[Hero Image 2]`, intended subject: LGSF villa or farmhouse.
+     - **Slide 3.** Label: "How we work". Headline: "45 to 75 working days to handover*". Tagline: "One team, one contract, one timeline." Footnote: "*Timeline depends on project scope and size and is confirmed in your quotation." Button: `See our process`. Image: `[Hero Image 3]` (not specified in the catalogue).
+     - **Slide 4.** Label: "Start your project". Headline: "Let's build something exact". Tagline: "Visit our office or talk to our team about your villa, apartment, farmhouse or commercial project." Button: `Get in touch`. Image: `[Hero Image 4]` (not specified in the catalogue).
+   - Controls: previous/next arrows, dots, swipe on touch, and a visible pause/play button.
+4. **About** (light section, two columns)
+   - Label: "Who we are". Heading: `ABOUT` **`FAB HAUS`**.
+   - Text, as written in the catalogue: "Fab Haus is a multidisciplinary design-and-build firm based in Bengaluru. For more than nine years we have shaped villas, apartments, farmhouses and commercial spaces, and unlike most studios we do not hand our work to someone else to build." and "Architecture, interiors, prefab construction and our own modular factory operate together, so the team that designs your space is accountable for how it is made and delivered. Visit our office to discuss your project with our team."
+   - Right: two cabin images (`[About Image 1]`, `[About Image 2]`).
+   - Stats row of cards: `9+` Years of industry experience, `250+` Projects completed, `25+` Design and build specialists. `100%` Client satisfaction on delivery is **hidden** until confirmed (section 2). Numbers are static, no count-up.
+5. **Render vs Reality** (before/after compare)
+   - Label: "Proof of delivery". Heading: `RENDER VS` **`REALITY`**. Drag slider comparing a 3D render ("What you approve") with a site photo of the same view ("What we deliver"). Images: `[Render Image]`, `[Built Image]`.
+   - Text: "Every project starts with a 3D visual you approve. Because one team designs, manufactures and installs, the finished space is built to match it."
+   - Hidden if the client has no matching pair.
+6. **One Roof, Four Disciplines + What We Do**
+   - Intro row of four numbered cards (stacked on mobile), text as written in the catalogue:
+     - 01 Architecture & Master Planning: "Sustainable, bioclimatic villas and commercial structures, with space planning and optimisation built into every plan."
+     - 02 Interior Design & Turnkey Fit-Outs: "Luxury residential and commercial interiors, executed end to end from concept and 3D visuals to handover."
+     - 03 Prefab & LGSF Solutions: "Cold-formed galvanised steel construction engineered for speed, durability and high-ROI projects."
+     - 04 FH_Modulars: "Our in-house modular factory: precision joinery for Fab Haus projects and OEM supply for partners."
+   - Closing line in a `--color-brand` band: "Design it. Engineer it. Manufacture it. Build it. One team answerable for the outcome."
+   - Then two segment cards side by side (stacked on mobile), label "Design services", heading `ARCHITECTURE &` **`INTERIORS`**:
+     - **Architecture & Master Planning.** "Buildings that respond to light, air and site." / "Our architects design sustainable, bioclimatic residences and commercial structures, planning every square foot to work harder." Bullets: Bioclimatic villas and residences; Commercial structures and space planning; Space optimisation for compact and large plots. Images: `[Architecture Image 1]` (resort), `[Architecture Image 2]` (LGSF project, architectural plan). Link: `View architecture work ↗`.
+     - **Interior Design & Turnkey Fit-Outs.** "Interiors delivered from first sketch to final handover." / "From luxury villas and farmhouses to hospitality spaces, one team manages design, manufacture, installation and finishing." Bullets: Villas, premium apartments and farmhouses; Commercial and hospitality fit-outs; Single-point accountability from start to finish. Images: `[Interior Image 1]` (Mysore), `[Interior Image 2]` (Prestige). Link: `View interior work ↗`.
+   - Links open the full portfolio in a new tab (see section 6).
+7. **Prefab & LGSF** (dark left panel + light right panel on desktop, stacked on mobile)
+   - Label: "Prefab & LGSF". Heading: `STEEL-FRAMED` **`CONSTRUCTION`**.
+   - Text: "Light Gauge Steel Framing builds precision-engineered, cold-formed galvanised steel structures off-site and assembles them fast, clean and accurate."
+   - Big figure: `3x to 4x` "faster delivery than conventional wet-brick and RCC construction".
+   - Image: `[LGSF Image]` (project structure, with before and after).
+   - Four feature cards: **Zero termite** "Galvanised steel gives termites nothing to feed on." / **Fire resistant** "Non-combustible framing for safer structures." / **Zone V seismic** "Engineered to resist high seismic loads." / **Eco-sustainable** "Recyclable steel and dry, low-waste construction."
+   - Typology line: Villas | Farmhouses | Eco-Resorts | Modular Cabins | Commercial Hubs | Rooftop Add-ons.
+   - **Comparison table** "The engineering case", heading `LGSF VS` **`CONVENTIONAL`**, columns Parameter / Fab Haus LGSF / Conventional wet brick / RCC, with the catalogue's eight rows:
+     | Parameter | Fab Haus LGSF | Conventional wet brick / RCC |
+     | :-- | :-- | :-- |
+     | Delivery speed | 3x to 4x faster | Sequential wet trades, longer cycles |
+     | Termite resistance | Zero termite risk | Timber elements remain vulnerable |
+     | Fire performance | Non-combustible framing | Varies by material and finish |
+     | Seismic performance | Zone V seismic resistance | Depends on design and site execution |
+     | Site conditions | Dry, clean, low dust | Curing, wet trades and debris |
+     | Sustainability | Recyclable steel, less waste | Higher material wastage |
+     | Quality control | Factory-precise, repeatable | Varies with site workmanship |
+     | Best suited for | Villas, farmhouses, resorts, rooftops | General-purpose building |
+   - Footnote directly under the table: "Comparative positioning. Project-specific performance is confirmed at design stage."
+   - Must be a real `<table>` with header cells and scope attributes. On mobile it becomes stacked rows or scrolls inside its own container, never the page.
+8. **FH_Modulars Factory** (dark)
+   - Label: "Manufacturing arm". Heading: `FH_MODULARS` **`FACTORY`**.
+   - Text: "FH_Modulars is our newly established in-house modular facility, built to move joinery off the dusty site and into a controlled factory." Do not describe the facility as long-established.
+   - Two panels: **For Fab Haus clients** "Precision factory joinery, zero site dust, seamless quality control, factory-direct pricing and rapid delivery." / **For partners: B2B OEM supply** "Modular joinery and casework for architects, interior designers and real estate developers across South India, built to your drawings."
+   - Image group: `[Modular Image]`, `[Prefab Materials Image]`, `[Joinery Materials Image]`, `[Design Sheets Image]`.
+   - **Materials & Specifications** (label "Factory transparency"), heading `MATERIALS &` **`SPECIFICATIONS`**, table Component / Standard / What it means for you:
+     | Component | Standard | What it means for you |
+     | :-- | :-- | :-- |
+     | Carcass boards | HDHMR and plywood boards | Stable, moisture-resistant cores for kitchens and wardrobes |
+     | Edge finishing | PUR edgebanding | A tight, durable seal along every exposed edge |
+     | Hardware | Blum and Hafele | Smooth, soft-close action and long service life |
+     | Machinery | German machinery | Accurate cutting and repeatable joinery |
+     | Process | Factory-made, site-installed | Zero site dust and fewer on-site delays |
+     | Pricing and delivery | Factory-direct | Transparent pricing and rapid delivery |
+   - Four outlined chips under the table: GERMAN MACHINERY, HDHMR + PLYWOOD, PUR EDGEBANDING, BLUM + HAFELE. Static, not interactive.
+9. **Signature Projects** (light, three cards, stacked on mobile; label "Flagship interiors")
+   - **Mysore** / Mysore Luxury Residence: "Double-height living spaces, custom fluted wood paneling, brass pendant lighting and modern master suites. A home composed around volume, warmth and craft." Image `[Project Image: Mysore living room]`.
+   - **Bengaluru** / Prestige Jindal City Apartment: "Contemporary modular styling with hidden LED profile lighting and integrated wardrobe joinery, making a premium apartment feel calm and uncluttered." Image `[Project Image: Apartment living or bedroom]`.
+   - **Bengaluru** / Nagarbhavi Kitchen: "A minimalist modular kitchen with a standalone quartz island, built-in appliances and fluted glass cabinetry." Image `[Project Image: Kitchen with quartz island]`.
+   - Cards are not links in Phase 1 (no project pages exist).
+10. **Process** (light band, label "How we work", heading `FROM DISCOVERY` **`TO HANDOVER`**)
+    - Five steps in a row with a connecting line (stacked on mobile): 1 **Discovery** "Site visit, brief and budget alignment at our office or on site." / 2 **Design** "Space planning, 2D drawings and 3D visuals shaped around your lifestyle." / 3 **Approval** "Detailed quotation, material selection and booking payment." / 4 **Build** "Factory production at FH_Modulars with parallel site works and quality checks." / 5 **Handover** "Final inspection, finishing touches and key handover." Numerals in a `--color-brand` circle.
+    - Beneath: a `--color-brand` block `45 to 75` "working days to handover*" and a dark block "Single-point accountability": "One team, one contract, one timeline. Design, manufacturing and installation sit under Fab Haus, so nothing is lost between handoffs."
+    - Footnote: "*Timeline depends on project scope and size and is confirmed in your quotation."
+11. **Video** (optional)
+    - `[Video URL]` shown as a poster with a play button. The embed loads only after the visitor clicks. Hidden if no video (none in the catalogue).
+12. **Testimonials** (carousel, optional)
+    - Cards with quote text, name and location (`[Testimonial]`, `[Client Name]`, `[Location]`). Hidden entirely, since the catalogue has none. Do not fake it.
+13. **Contact** (dark, full-width, label "Start your project")
+    - Headline "Let's build something exact".
+    - Office: "Annapoorneshwari Nagar, Bengaluru, Karnataka" plus `[Full street address and PIN code]`. `[Phone]`, `[Email]`. Website: www.fabhaus.in.
+    - `--color-brand` block "Book a consultation": "Visit our office or talk to our team about your villa, apartment, farmhouse or commercial project." Primary action is a `mailto:` button and a WhatsApp button (`https://wa.me/<digits only, country code, no + or spaces>`). No form in Phase 1.
+    - Map and QR: a click-to-load map facade (same pattern as the video) and a QR code carrying the logo. Both are hidden until the client supplies the map link and the QR destination (section 10).
+14. **Footer** (multi-column)
+    - Columns: Quick links (page sections), Work (`Architecture ↗`, `Interiors ↗`), Contact (address, `[Phone]`, `[Email]`).
+    - Networks the client actually has (`[Instagram]`, `[LinkedIn]`). `[Download Brochure]` (PDF, new tab) only if supplied. Copyright line.
+15. **Floating action buttons** (fixed, right edge)
+    - Icon stack: WhatsApp, Call, and Instagram (only if the client has it), plus a fixed `Get in touch` tab that scrolls to Contact. It is a link, not a form.
+    - 44px minimum tap targets, safe-area insets respected, must not cover content or form a trap on small screens.
+
+**Fallbacks when assets are missing** (the client has little material; every catalogue image is currently a placeholder)
+- Hero: fewer than two supplied images means a single static slide with no controls or autoplay. Slides without an image are dropped, not shown blank.
+- About image missing: text-only, centered statement with the stats row.
+- Render vs Reality: no matching pair means the section is hidden.
+- Segment card, Prefab, FH_Modulars and project images missing: text-only card on `--color-surface` (or `--color-sand` in light sections).
+- Video, testimonials, brochure, map, QR and social links: hidden when absent.
+- Mock only: a missing image renders as a neutral `--color-surface` block labelled with its placeholder name (for example `[Hero Image 1]`), so the client can see what is needed. At go-live the fallbacks above apply.
+
+---
+
+## 5. Motion System
+
+Motion follows the simple, component-driven style of the reference site: a slider, a compare slider, a carousel and gentle reveals. There is no scroll-linked motion.
+
+### Principles
+- Calm and simple. No bounce, no spring overshoot, no flashy effects.
+- Animate only `transform` and `opacity`. Never animate width, height, top or left.
+- Motion never hides content: everything is readable without it.
+- Not used in this layout: parallax, pinned sections, masked line reveals, clip-path wipes, count-ups, smooth-scroll libraries.
+
+### Tokens
+
+| Token | Value |
+| :-- | :-- |
+| Ease (reveals, UI) | `cubic-bezier(0.16, 1, 0.3, 1)` |
+| Slide crossfade | 1.0s |
+| Slide zoom (Ken Burns) | `scale 1 → 1.06` over the slide's visible time |
+| Autoplay interval (hero) | 6s per slide |
+| Duration, text reveal | 0.6s |
+| Duration, image reveal | 0.8s |
+| Duration, small UI | 0.3s |
+| Stagger, cards or columns | 0.1s |
+| Reveal trigger | element top at 85% of the viewport, play once (IntersectionObserver) |
+
+### Behaviour by component
+
+**Hero slider**
+- Crossfade between slides (`opacity`), with a slow zoom on the active slide's image.
+- On each slide change, the label, headline, tagline and button fade and rise in sequence (`opacity 0 → 1`, `y 24 → 0`, 0.1s apart).
+- Autoplay every 6s. Autoplay stops on hover, on keyboard focus inside the slider, when the browser tab is hidden, when the pause button is pressed, and when reduced motion is on.
+- Swipe on touch, arrow keys when focused, dots and arrows both clickable.
+- Only the first slide's image is preloaded. Autoplay starts after the first slide has loaded.
+
+**Header**
+- Sticky. Transparent to solid background change after 80px of scroll (`opacity` of the background layer, 0.3s). The utility bar scrolls away.
+- Dropdown opens on hover or focus (desktop) and on tap (touch) with a 0.2s fade and 8px rise. It is keyboard operable (`Enter`/`Space` opens, `Esc` closes).
+
+**Section reveals**
+- Headings, text, buttons and cards fade and rise once on entry. Cards and columns stagger by 0.1s.
+- Images fade in with a slight settle (`opacity 0 → 1`, `scale 1.04 → 1`, 0.8s).
+- Initial hidden states are applied by JavaScript after mount (`html.js` class), never by plain CSS, so content is not invisible if JS fails to load.
+
+**Render vs Reality (compare slider)**
+- Starts at 50%. The visitor drags the handle (pointer events), or uses the left/right arrow keys when it is focused.
+- The top image is revealed by a clip applied to it. The handle moves with `transform`.
+- Exposed as `role="slider"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow` and an accessible name.
+
+**Segment, project and other cards**
+- No scroll-linked motion. Hover (fine pointer only): image zooms `1 → 1.03` over 0.5s, link underline draws in, `↗` arrow nudges 4px.
+
+**Testimonials carousel**
+- Slides horizontally (0.5s). Arrows and swipe. Autoplay is off by default.
+
+**Floating action buttons**
+- Fade in 0.3s after load. No other motion.
+
+**New catalogue sections** (Four Disciplines, Prefab & LGSF, tables, FH_Modulars, Signature Projects, Process)
+- Use the standard section reveal only: heading, text and cards fade and rise once, cards stagger by 0.1s, images settle in.
+- Tables reveal as one block. Rows do not animate individually.
+- Process: the connecting line is static. Steps stagger in on entry, with no draw-on animation.
+- The `3x to 4x` figure and all stats are static. No count-ups.
+- Specification chips are static.
+- Signature Project cards follow the card hover rule above (image zoom on fine pointers only).
+
+### Anchors and scrolling
+- Native browser scrolling everywhere. In-page anchors use CSS `scroll-behavior: smooth` (switched off under reduced motion) and `scroll-margin-top` equal to the header height.
+
+### Hover and micro-interactions (devices with hover and a fine pointer only)
+- Buttons: fill slides in from the left (0.3s), arrow nudges 4px.
+- Nav links: underline draws from the left.
+- All hover-revealed information is **always visible on touch devices**.
+
+---
+
+## 6. UX and Accessibility Requirements
+
+**Navigation and orientation**
+- Skip-to-content link as the first focusable element.
+- Active section highlighting in the nav.
+- The header is sticky and always visible. It does not hide on scroll.
+- Every key page action is reachable in at most two clicks (`Get in touch` is in the header and as a fixed tab, and anchors to Contact).
+- The nav keeps `Get in touch` visible so a visitor returning from a portfolio tab still has a clear next step.
+
+**External links (new tab)**
+- Every link that opens a new tab uses `target="_blank"` and `rel="noopener noreferrer"`.
+- Show a visible `↗` icon and add visually hidden text: "(opens in a new tab)".
+- Use plain anchor tags, never `window.open()` (popup blockers can break it).
+- Footer social links follow the same rules.
+- The original page stays open, so no state is lost.
+
+**Reduced motion** (`prefers-reduced-motion: reduce`)
+- Hero autoplay is off, the slow zoom is off, and the crossfade becomes an instant swap.
+- Smooth anchor scrolling is off.
+- Reveals become a simple 0.2s fade. Content must never depend on animation to be visible.
+
+**Accessibility**
+- Text over photos must meet WCAG AA contrast, so use a dark overlay of at least 40% on image sections.
+- Visible focus states on all interactive elements.
+- Descriptive alt text for every image, and `aria-hidden` for purely decorative ones.
+- Drawer menu: focus trap, `Esc` closes it, and focus returns to the menu button.
+- Hero slider: marked up as a carousel (`aria-roledescription="carousel"`, each slide labelled "n of 4"). A visible pause/play button is required because it moves automatically. Arrows have accessible names, dots are buttons with `aria-current` on the active one. Only the active slide is exposed to assistive technology.
+- Compare slider: keyboard operable and announced as a slider (see section 5).
+- Dropdown menu: keyboard operable, closes with `Esc`, focus never trapped.
+- Video: click-to-load facade is a real button with an accessible name; the embed has a title.
+
+**Device and browser compatibility**
+The design must work on every common device. No layout may depend on one specific screen.
+- **Breakpoints (min-width):** 360 (small phones), 390 (primary mobile), 768 (tablet portrait), 1024 (tablet landscape / small laptop), 1440 (primary desktop), 1920+ (large desktop). Content max-width and image scaling must hold on large screens, with no stretched or pixelated imagery. Use fluid type (`clamp`) and relative units, not fixed-pixel layouts.
+- **Orientation:** portrait and landscape both supported. On short landscape viewports (phones around 360–430px tall), `100svh` sections must not clip content: reduce headline size and padding with a `max-height` media query.
+- **Input:** touch, mouse and keyboard all work. Hover is never required to reach content. Enable hover effects by capability, `(hover: hover) and (pointer: fine)`, not by screen width, so tablets with keyboards or large touch screens behave correctly.
+- **Scrolling:** native browser scrolling on every device. No smooth-scroll library.
+- **Browsers (last 2 major versions):** Chrome, Safari (iOS and macOS), Firefox, Edge, Samsung Internet. Safari checks: `100svh`, `clip-path`, `backdrop-filter` (include `-webkit-` prefix and a solid-color fallback), safe-area insets.
+- **Zoom and text size:** layout survives 200% browser zoom and increased system text size with no horizontal scroll or overlapping text.
+- **Test matrix before client sign-off:** small and large iPhone, mid-range Android phone, iPad (portrait and landscape), 13" laptop, 1920px desktop. Include a real-device check on iOS Safari and Android Chrome, because emulators do not show real scroll performance.
+
+**Mobile**
+- The layout has no pinning or parallax. Below 768px the utility bar is hidden and the header dropdown becomes a drawer accordion. Floating buttons sit at the bottom-right, clear of safe-area insets and the page content.
+- Tap targets are at least 44px. Container padding is 20px. Respect safe-area insets.
+- Use `100svh`, never `100vh`.
+
+**Performance budget**
+- LCP under 2.5s, CLS under 0.1, and no jank while scrolling at 60fps on a mid-range phone.
+- The first hero slide image is preloaded and served as AVIF or WebP with responsive `srcset`. Other slides and all other images are lazy-loaded.
+- Every image has explicit width and height or an aspect-ratio box to avoid layout shift.
+- The video section is a poster until clicked. The embed loads only after the visitor clicks play.
+- Fonts: `font-display: swap`, subset to Latin, preloaded.
+- Carousel instances are destroyed on unmount and autoplay timers are cleared.
+
+---
+
+## 7. File and Component Structure
+
+```
+/src
+├── App.tsx                    # Page assembly
+├── main.tsx
+├── index.css                  # Tailwind v4, color tokens, global styles
+├── data/
+│   └── content.ts             # ALL client copy and placeholders (catalogue content + pendingConfirmation flags)
+├── hooks/
+│   ├── useReveal.ts           # IntersectionObserver fade/rise reveals
+│   ├── useActiveSection.ts    # Nav highlight
+│   └── useReducedMotion.ts
+├── components/
+│   ├── UtilityBar.tsx         # Email / phone strip, hidden below 768px
+│   ├── Header.tsx             # Sticky header, Work dropdown, drawer
+│   ├── HeroSlider.tsx         # Embla + fade plugin, autoplay, pause button, 4 slides
+│   ├── About.tsx              # Text + images + stats (100% card hidden until confirmed)
+│   ├── RenderVsReality.tsx    # Compare slider, hidden without a pair
+│   ├── Disciplines.tsx        # Four numbered cards + closing band
+│   ├── WhatWeDo.tsx           # Two segment cards (Architecture / Interiors), external links
+│   ├── PrefabLGSF.tsx         # Feature cards, big figure, typology line
+│   ├── LgsfComparison.tsx     # Accessible table + mandatory footnote
+│   ├── FHModulars.tsx         # Client / partner panels, image group
+│   ├── MaterialsSpecs.tsx     # Accessible table + four chips
+│   ├── SignatureProjects.tsx  # Three project cards
+│   ├── Process.tsx            # Five static steps + 45 to 75 days block + footnote
+│   ├── VideoSection.tsx       # Click-to-load facade, hidden without a URL
+│   ├── Testimonials.tsx       # Carousel, hidden if no content supplied
+│   ├── Contact.tsx            # Details, mailto + WhatsApp, optional map/QR
+│   ├── Footer.tsx
+│   ├── FloatingActions.tsx    # WhatsApp, Call, Instagram, Get in touch tab
+│   └── ui/
+│       ├── Button.tsx
+│       ├── Reveal.tsx         # Wrapper applying the reveal
+│       ├── CompareSlider.tsx
+│       ├── Carousel.tsx       # Shared Embla wrapper
+│       ├── DataTable.tsx      # Shared responsive table (stacked rows on mobile)
+│       ├── ImageOrPlaceholder.tsx  # Real image, or the labelled mock block
+│       └── ExternalLink.tsx   # target, rel, ↗ icon, hidden "opens in new tab" text
+└── assets/images/             # Client photography (replace placeholders)
+```
+
+---
+
+## 8. Build Scripts
+
+```bash
+npm install
+npm run dev          # local dev server
+npx tsc --noEmit     # type check
+npm run build        # production bundle
+```
+
+---
+
+## 9. Acceptance Checklist
+
+- [ ] No unconfirmed fact appears anywhere on the page, and nothing from the reference site's copy, numbers or imagery is reused.
+- [ ] The page is static: no modals, forms, calculators or backend calls (Phase 1).
+- [ ] Section order and layout match section 4, including all fallbacks when assets are missing.
+- [ ] Hero slider: crossfade, autoplay, pause/play button, arrows, dots and swipe all work; autoplay stops on hover, focus, hidden tab and reduced motion.
+- [ ] Render vs Reality slider works with pointer and keyboard.
+- [ ] Reveals play once and never leave content invisible if scripts fail.
+- [ ] Reduced-motion mode works and the content stays fully usable.
+- [ ] Mobile (390px): drawer menu and accordion work, hover content is visible, floating buttons do not cover content.
+- [ ] Contrast, focus states, alt text and the skip link pass an accessibility check.
+- [ ] LCP < 2.5s, CLS < 0.1 on a mid-range phone (note the tool and score).
+- [ ] WhatsApp link uses digits only, and the `mailto:` link works.
+- [ ] Both portfolio links open in a new tab with `rel="noopener noreferrer"` and a visible `↗` plus hidden "opens in a new tab" text.
+- [ ] No link points to an unconfirmed or placeholder URL at launch.
+- [ ] Stats are hidden unless real figures were supplied.
+- [ ] Every catalogue claim shown on the page matches the catalogue wording. Nothing was added.
+- [ ] The "45 to 75 working days" footnote and the LGSF "Comparative positioning" footnote appear wherever those claims do.
+- [ ] "100% client satisfaction" is hidden unless the client confirmed it.
+- [ ] Comparison and Materials tables are real `<table>` elements with header cells, and do not cause page-level horizontal scroll at 360px.
+- [ ] No gold text sits on cream or sand backgrounds (contrast rule, section 3).
+- [ ] No catalogue artefacts leaked onto the site (page numbers, "Master Catalogue 2026" footers, "Image placeholder" captions, designer notes).
+- [ ] Layout verified on the device matrix in section 6, with no horizontal scroll at any width from 360px up.
+- [ ] No content depends on hover; touch, mouse and keyboard all work.
+- [ ] Mock site is served with `noindex` and is not discoverable until the client approves going public.
+- [ ] At go-live: domain connected, HTTPS valid, www/apex redirect working, email still delivering, `noindex` removed (section 12).
+
+---
+## 10. Needed From the Client Before Launch
+
+The catalogue answers the earlier list for services, process, materials and project names. Still missing:
+
+1. Contact details: phone, email, full street address and PIN code (the catalogue has placeholders only).
+2. Photography. Every catalogue image is a placeholder. Needed: hero (x4), about (cabin x2), architecture (resort, LGSF arch plan), interiors (Mysore, Prestige), LGSF project (structure, before and after), FH_Modulars (modular, prefab materials, joinery materials, design sheets), three signature projects, and a render plus built photo pair.
+3. Confirmation that the palette sampled from the catalogue is the brand palette, plus the brand fonts and logo files.
+4. Sign-off on the numbers and claims: 9+ years, 250+ projects, 25+ specialists, "100% client satisfaction", and the LGSF performance and sustainability claims.
+5. Portfolio URLs for Architecture and Interiors.
+6. Map link and QR destination for the Contact section, and what "redirectable" means for the `www.fabhaus.in` booking link.
+7. Social links and an optional brochure PDF.
+8. Domain details (GoDaddy) and GoDaddy access through Delegate Access.
+
+
+## 11. Phase 2: Conversational Lead Qualifier (after launch)
+
+Detailed post-launch lead-qualifier specification kept strictly out of Phase 1 scope.
+
+---
+
+## 12. Deployment and Domain (GoDaddy)
+
+Mock phase on preview URL with `noindex`, followed by GoDaddy apex + www record setup with DNS preservation.
+
+---
+
+## 13. Deferred: SEO (later phase)
+
+SEO configuration is intentionally deferred until Phase 1 review sign-off.
+
+
+---
+
+## 14. Catalogue Content Map
+
+| Catalogue page | Site section |
+| :-- | :-- |
+| 01 Cover | Hero slide 1 |
+| 02 About Fab Haus | About + stats |
+| 03 One roof, four disciplines | Disciplines |
+| 04 Architecture & Interiors | Segment cards (What We Do) |
+| 05 Steel-framed construction | Prefab & LGSF, hero slide 2 |
+| 06 LGSF vs Conventional | LGSF comparison table |
+| 07 FH_Modulars Factory | FH_Modulars |
+| 08 Materials & Specifications | Materials & Specs table + chips |
+| 09 Signature Projects | Signature Projects |
+| 10 Render vs Reality | Render vs Reality compare slider |
+| 11 How we work | Process, hero slide 3 |
+| 12 Start your project | Contact, hero slide 4 |
+
+**Catalogue gaps (never filled with invented content):** phone, email, full address and PIN, every image, testimonials, client logos, blog, video, portfolio URLs, map and QR destinations, brand fonts and logo files.

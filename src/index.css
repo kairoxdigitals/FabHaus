@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg: #0E0E0E;
+    --color-surface: #1E1B1B;
+    --color-text: #F4EBDD;
+    --color-muted: #A3A3A3;
+    --color-background: linear-gradient(to right, #F0D34A, #2F2C29, #D3B21B);;
+    --color-brand: #9E1B24;
+    --color-light: #F4EBDD;
+    --color-sand: #E3D5BD;
+    --color-light-text: #0E0E0E;
+    --color-light-muted: #5C5549;
+
+    --font-display: 'Caladea', Cambria, Georgia, serif;
+    --font-body: 'Lato', Carlito, 'DM Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  /* Scroll offset for sticky header */
+  section[id], div[id] {
+    scroll-margin-top: 80px;
+  }
+}
+
+/* Hairlines at 8-12% opacity per spec */
+.hairline-b {
+  border-bottom: 1px solid rgba(244, 235, 221, 0.08);
+}
+.hairline-t {
+  border-top: 1px solid rgba(244, 235, 221, 0.08);
+}
+.hairline-x {
+  border-left: 1px solid rgba(244, 235, 221, 0.08);
+  border-right: 1px solid rgba(244, 235, 221, 0.08);
+}
+.hairline-border {
+  border: 1px solid rgba(244, 235, 221, 0.08);
+}
+
+/* Light section hairlines */
+.hairline-light {
+  border-color: rgba(14, 14, 14, 0.12);
+}
+.hairline-light-b {
+  border-bottom: 1px solid rgba(14, 14, 14, 0.12);
+}
+.hairline-light-border {
+  border: 1px solid rgba(14, 14, 14, 0.12);
+}
+
+/* Ken Burns slow zoom for active hero slide */
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.animate-ken-burns {
+  animation: kenBurns 6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ken-burns {
+    animation: none !important;
+    transform: scale(1) !important;
+  }
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -9999px;
+  left: 1rem;
+  z-index: 1000;
+  padding: 0.75rem 1.25rem;
+  background-color: var(--color-brand);
+  color: #FFFFFF;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 2px;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Safe area insets support for iOS */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Short landscape viewports (phones 360-430px tall in landscape) */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero-slide-content {
+    padding-top: 3.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+  .hero-headline {
+    font-size: clamp(1.75rem, 4.5vw, 2.75rem) !important;
+    margin-bottom: 0.5rem !important;
+    line-height: 1.05 !important;
+  }
+  .hero-tagline {
+    font-size: 0.875rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+}
